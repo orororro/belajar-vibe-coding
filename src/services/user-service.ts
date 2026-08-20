@@ -1,6 +1,11 @@
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { db, sessions, users } from '../db';
+import {
+  EmailAlreadyExistsError,
+  InvalidCredentialsError,
+  UnauthorizedError,
+} from '../errors';
 
 export interface RegisterUserInput {
   name: string;
@@ -23,7 +28,7 @@ export class UserService {
       .limit(1);
 
     if (existingUsers.length > 0) {
-      throw new Error('email sudah terdaftar');
+      throw new EmailAlreadyExistsError();
     }
 
     // 2. Hash password menggunakan bcrypt
@@ -48,13 +53,13 @@ export class UserService {
       .limit(1);
 
     if (!user) {
-      throw new Error('email atau password salah');
+      throw new InvalidCredentialsError();
     }
 
     // 2. Bandingkan password dengan hash bcrypt
     const isPasswordValid = await bcrypt.compare(input.password, user.password);
     if (!isPasswordValid) {
-      throw new Error('email atau password salah');
+      throw new InvalidCredentialsError();
     }
 
     // 3. Generate unique UUID token
@@ -84,7 +89,7 @@ export class UserService {
       .limit(1);
 
     if (!result) {
-      throw new Error('unauthorized');
+      throw new UnauthorizedError();
     }
 
     return {
@@ -93,5 +98,16 @@ export class UserService {
       email: result.email,
       created_at: result.createdAt,
     };
+  }
+
+  static async logoutUser(token: string) {
+    // Optimasi: Eksekusi DELETE langsung dan periksa affectedRows
+    const [result] = await db.delete(sessions).where(eq(sessions.token, token));
+
+    if (!result || (result as any).affectedRows === 0) {
+      throw new UnauthorizedError();
+    }
+
+    return { success: true };
   }
 }
