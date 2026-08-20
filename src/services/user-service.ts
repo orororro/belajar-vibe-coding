@@ -94,4 +94,22 @@ export class UserService {
       created_at: result.createdAt,
     };
   }
+
+  static async logoutUser(token: string) {
+    // 1. Cek apakah session dengan token ini ada di database
+    const [session] = await db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.token, token))
+      .limit(1);
+
+    if (!session) {
+      throw new Error('unauthorized');
+    }
+
+    // 2. Hapus session dari database
+    await db.delete(sessions).where(eq(sessions.token, token));
+
+    return { success: true };
+  }
 }
