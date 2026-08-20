@@ -15,6 +15,13 @@
       "when": 1787231072331,
       "tag": "0001_tricky_wrecker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1787232306728,
+      "tag": "0002_adorable_gladiator",
+      "breakpoints": true
     }
   ]
 }

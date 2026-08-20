@@ -1,9 +1,14 @@
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
-import { db, users } from '../db';
+import { db, sessions, users } from '../db';
 
 export interface RegisterUserInput {
   name: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginUserInput {
   email: string;
   password: string;
 }
@@ -32,5 +37,35 @@ export class UserService {
     });
 
     return { success: true };
+  }
+
+  static async loginUser(input: LoginUserInput) {
+    // 1. Cari data user berdasarkan email
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, input.email))
+      .limit(1);
+
+    if (!user) {
+      throw new Error('email atau password salah');
+    }
+
+    // 2. Bandingkan password dengan hash bcrypt
+    const isPasswordValid = await bcrypt.compare(input.password, user.password);
+    if (!isPasswordValid) {
+      throw new Error('email atau password salah');
+    }
+
+    // 3. Generate unique UUID token
+    const token = crypto.randomUUID();
+
+    // 4. Simpan session baru ke database
+    await db.insert(sessions).values({
+      token,
+      userId: user.id,
+    });
+
+    return { token };
   }
 }
