@@ -68,4 +68,30 @@ export class UserService {
 
     return { token };
   }
+
+  static async getCurrentUser(token: string) {
+    // 1. Cari user yang memiliki session token ini melalui JOIN sessions dan users
+    const [result] = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        createdAt: users.createdAt,
+      })
+      .from(sessions)
+      .innerJoin(users, eq(sessions.userId, users.id))
+      .where(eq(sessions.token, token))
+      .limit(1);
+
+    if (!result) {
+      throw new Error('unauthorized');
+    }
+
+    return {
+      id: result.id,
+      name: result.name,
+      email: result.email,
+      created_at: result.createdAt,
+    };
+  }
 }
