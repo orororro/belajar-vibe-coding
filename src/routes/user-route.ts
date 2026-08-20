@@ -8,7 +8,7 @@ import { authMiddleware } from '../middlewares/auth-middleware';
 import { UserService } from '../services/user-service';
 
 export const userRoute = new Elysia({ prefix: '/api' })
-  .onError(({ error, set }) => {
+  .onError(({ code, error, set }) => {
     if (error instanceof UnauthorizedError) {
       set.status = 401;
       return { error: error.message };
@@ -20,6 +20,13 @@ export const userRoute = new Elysia({ prefix: '/api' })
     ) {
       set.status = 400;
       return { error: error.message };
+    }
+
+    if (code === 'VALIDATION') {
+      set.status = 400;
+      return {
+        error: error.message || 'Validation Error',
+      };
     }
 
     set.status = 500;
@@ -42,9 +49,9 @@ export const userRoute = new Elysia({ prefix: '/api' })
     },
     {
       body: t.Object({
-        name: t.String(),
-        email: t.String(),
-        password: t.String(),
+        name: t.String({ minLength: 1, maxLength: 255 }),
+        email: t.String({ format: 'email', maxLength: 255 }),
+        password: t.String({ minLength: 1 }),
       }),
     }
   )
@@ -62,8 +69,8 @@ export const userRoute = new Elysia({ prefix: '/api' })
     },
     {
       body: t.Object({
-        email: t.String(),
-        password: t.String(),
+        email: t.String({ format: 'email', maxLength: 255 }),
+        password: t.String({ minLength: 1 }),
       }),
     }
   )
