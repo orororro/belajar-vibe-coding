@@ -53,6 +53,11 @@ export const userRoute = new Elysia({ prefix: '/api' })
         email: t.String({ format: 'email', maxLength: 255 }),
         password: t.String({ minLength: 1 }),
       }),
+      detail: {
+        summary: 'Registrasi Pengguna',
+        description: 'Mendaftarkan akun pengguna baru ke dalam sistem',
+        tags: ['User'],
+      },
     }
   )
   .post(
@@ -72,18 +77,48 @@ export const userRoute = new Elysia({ prefix: '/api' })
         email: t.String({ format: 'email', maxLength: 255 }),
         password: t.String({ minLength: 1 }),
       }),
+      detail: {
+        summary: 'Login Pengguna',
+        description:
+          'Mengautentikasi pengguna dan mengembalikan token sesi (Bearer)',
+        tags: ['User'],
+      },
     }
   )
   .use(authMiddleware)
-  .get('/current', async ({ token }) => {
-    const user = await UserService.getCurrentUser(token);
-    return {
-      data: user,
-    };
-  })
-  .delete('/logout', async ({ token }) => {
-    await UserService.logoutUser(token);
-    return {
-      data: 'ok',
-    };
-  });
+  .get(
+    '/current',
+    async ({ token }) => {
+      const user = await UserService.getCurrentUser(token);
+      return {
+        data: user,
+      };
+    },
+    {
+      detail: {
+        summary: 'Dapatkan Profil Pengguna Saat Ini',
+        description:
+          'Mengambil profil pengguna yang sedang login berdasarkan token Bearer',
+        tags: ['User'],
+        security: [{ bearerAuth: [] }],
+      },
+    }
+  )
+  .delete(
+    '/logout',
+    async ({ token }) => {
+      await UserService.logoutUser(token);
+      return {
+        data: 'ok',
+      };
+    },
+    {
+      detail: {
+        summary: 'Logout Pengguna',
+        description:
+          'Menghapus sesi login saat ini dan membatalkan token Bearer',
+        tags: ['User'],
+        security: [{ bearerAuth: [] }],
+      },
+    }
+  );
