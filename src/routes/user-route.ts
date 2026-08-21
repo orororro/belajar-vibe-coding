@@ -49,10 +49,28 @@ export const userRoute = new Elysia({ prefix: '/api' })
     },
     {
       body: t.Object({
-        name: t.String({ minLength: 1, maxLength: 255 }),
-        email: t.String({ format: 'email', maxLength: 255 }),
-        password: t.String({ minLength: 1 }),
+        name: t.String({ minLength: 1, maxLength: 255, example: 'Eko Kurniawan' }),
+        email: t.String({
+          format: 'email',
+          maxLength: 255,
+          example: 'eko@example.com',
+        }),
+        password: t.String({ minLength: 1, example: 'secretpassword' }),
       }),
+      response: {
+        200: t.Object(
+          {
+            data: t.String({ example: 'ok' }),
+          },
+          { description: 'Registrasi berhasil' }
+        ),
+        400: t.Object(
+          {
+            error: t.String({ example: 'email sudah terdaftar' }),
+          },
+          { description: 'Validasi gagal atau email sudah terdaftar' }
+        ),
+      },
       detail: {
         summary: 'Registrasi Pengguna',
         description: 'Mendaftarkan akun pengguna baru ke dalam sistem',
@@ -74,9 +92,30 @@ export const userRoute = new Elysia({ prefix: '/api' })
     },
     {
       body: t.Object({
-        email: t.String({ format: 'email', maxLength: 255 }),
-        password: t.String({ minLength: 1 }),
+        email: t.String({
+          format: 'email',
+          maxLength: 255,
+          example: 'eko@example.com',
+        }),
+        password: t.String({ minLength: 1, example: 'secretpassword' }),
       }),
+      response: {
+        200: t.Object(
+          {
+            data: t.String({
+              example: '123e4567-e89b-12d3-a456-426614174000',
+              description: 'Token sesi unik (UUID)',
+            }),
+          },
+          { description: 'Login berhasil' }
+        ),
+        400: t.Object(
+          {
+            error: t.String({ example: 'email atau password salah' }),
+          },
+          { description: 'Kredensial tidak valid' }
+        ),
+      },
       detail: {
         summary: 'Login Pengguna',
         description:
@@ -95,6 +134,25 @@ export const userRoute = new Elysia({ prefix: '/api' })
       };
     },
     {
+      response: {
+        200: t.Object(
+          {
+            data: t.Object({
+              id: t.Integer({ example: 1 }),
+              name: t.String({ example: 'Eko Kurniawan' }),
+              email: t.String({ example: 'eko@example.com' }),
+              created_at: t.Date({ example: '2026-08-21T00:00:00.000Z' }),
+            }),
+          },
+          { description: 'Data profil pengguna yang sedang login' }
+        ),
+        401: t.Object(
+          {
+            error: t.String({ example: 'unauthorized' }),
+          },
+          { description: 'Token tidak valid atau tidak disertakan' }
+        ),
+      },
       detail: {
         summary: 'Dapatkan Profil Pengguna Saat Ini',
         description:
@@ -113,6 +171,20 @@ export const userRoute = new Elysia({ prefix: '/api' })
       };
     },
     {
+      response: {
+        200: t.Object(
+          {
+            data: t.String({ example: 'ok' }),
+          },
+          { description: 'Logout berhasil dan sesi dihapus' }
+        ),
+        401: t.Object(
+          {
+            error: t.String({ example: 'unauthorized' }),
+          },
+          { description: 'Token tidak valid atau sudah kadaluwarsa' }
+        ),
+      },
       detail: {
         summary: 'Logout Pengguna',
         description:
